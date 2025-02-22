@@ -5,9 +5,10 @@ from environ import Env
 
 
 env = Env()
-env.read_env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+env.read_env(env_file=BASE_DIR / '.env')
 
 SECRET_KEY = env.str('SECRET_KEY')
 
