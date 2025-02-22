@@ -16,6 +16,8 @@ DEBUG = env.bool('DEBUG')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
+CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS')
+
 INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -25,6 +27,7 @@ INSTALLED_APPS = [
     'django.contrib.admin',
     'rest_framework',
     'rest_framework_simplejwt',
+    'corsheaders',
     'drf_standardized_errors',
     'telegram_auth',
     'accounting',
@@ -33,6 +36,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
