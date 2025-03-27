@@ -11,7 +11,6 @@ class CategoryCreateInputSerializer(serializers.Serializer):
 
 class CategoryCreateOutputSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    user_id = serializers.IntegerField()
     name = serializers.CharField()
     parent_id = serializers.IntegerField(allow_null=True)
     type = serializers.ChoiceField(choices=Category.Type.choices)

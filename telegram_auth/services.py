@@ -11,7 +11,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from telegram_auth.exceptions import (
     TelegramMiniAppInitDataExpiredError,
     TelegramMiniAppInitDataInvalidError,
-    TelegramMiniAppInitDataRequiredError,
+    TelegramMiniAppInitDataRequiredError, UserNotFoundError,
 )
 from telegram_auth.models import User
 
@@ -156,3 +156,10 @@ class TelegramAuthenticateInteractor:
             'access_token': str(refresh.access_token),
             'refresh_token': str(refresh),
         }
+
+
+def ensure_user_exists(
+        user_id: int,
+) -> None:
+    if not User.objects.filter(id=user_id).exists():
+        raise UserNotFoundError

@@ -22,5 +22,5 @@ categories_urlpatterns = [
 ]
 
 urlpatterns = [
-    path('v1/categories/', include(categories_urlpatterns)),
+    path('categories/', include(categories_urlpatterns)),
 ]
