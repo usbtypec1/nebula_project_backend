@@ -1,2 +1,3 @@
 from .create import AccountCreateInputSerializer, AccountCreateOutputSerializer
 from .retrieve import AccountRetrieveOutputSerializer
+from .update import AccountUpdateInputSerializer

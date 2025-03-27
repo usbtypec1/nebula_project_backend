@@ -141,3 +141,19 @@ def delete_account_by_id(account_id: int) -> None:
     deleted_count, _ = Account.objects.filter(id=account_id).delete()
     if deleted_count == 0:
         raise AccountNotFoundError
+
+
+def update_account_by_id(
+        *,
+        account_id: int,
+        name: str,
+        is_public: bool,
+        initial_balance: Decimal,
+) -> None:
+    updated_count = Account.objects.filter(id=account_id).update(
+        name=name,
+        is_public=is_public,
+        initial_balance=initial_balance,
+    )
+    if updated_count == 0:
+        raise AccountNotFoundError
