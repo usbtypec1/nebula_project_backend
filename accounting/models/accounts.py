@@ -14,6 +14,12 @@ class Account(models.Model):
         on_delete=models.PROTECT,
         verbose_name=_('User'),
     )
+    initial_balance = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        verbose_name=_('Initial balance'),
+    )
     is_public = models.BooleanField(
         default=False,
         verbose_name=_('Is public'),
