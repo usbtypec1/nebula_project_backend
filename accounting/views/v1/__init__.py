@@ -1,2 +1,2 @@
-from .accounts import AccountListCreateApi
+from .accounts import AccountListCreateApi, AccountRetrieveUpdateDeleteApi
 from .categories import CategoryListCreateApi, CategoryRetrieveUpdateDeleteApi

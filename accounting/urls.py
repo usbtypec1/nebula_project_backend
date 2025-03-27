@@ -28,6 +28,11 @@ accounts_urlpatterns = [
         AccountListCreateApi.as_view(),
         name='account-list-create',
     ),
+    path(
+        '<int:account_id>/',
+        CategoryRetrieveUpdateDeleteApi.as_view(),
+        name='account-retrieve-update-delete',
+    )
 ]
 
 urlpatterns = [
