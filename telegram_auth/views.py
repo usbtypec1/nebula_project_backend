@@ -1,34 +1,18 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import status
-from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.exceptions import InvalidToken
-from rest_framework_simplejwt.serializers import TokenRefreshSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from telegram_auth.services import TelegramAuthenticateInteractor
+from telegram_auth.serializers import CookieTokenRefreshSerializer
+from telegram_auth.use_cases import TelegramAuthenticateUseCase
 
 
 User = get_user_model()
 
 
-class CookieTokenRefreshSerializer(TokenRefreshSerializer):
-    refresh = None
-
-    def validate(self, attrs):
-        attrs['refresh'] = self.context['request'].COOKIES.get('refresh_token')
-        if attrs['refresh']:
-            return super().validate(attrs)
-        else:
-            raise InvalidToken(
-                'No valid token found in cookie \'refresh_token\''
-            )
-
-
-class CookieTokenRefreshView(TokenRefreshView):
+class CookieTokenRefreshApi(TokenRefreshView):
     serializer_class = CookieTokenRefreshSerializer
 
     def finalize_response(self, request, response, *args, **kwargs):
@@ -42,41 +26,29 @@ class CookieTokenRefreshView(TokenRefreshView):
         return super().finalize_response(request, response, *args, **kwargs)
 
 
-class TelegramAuthView(APIView):
+class TelegramAuthApi(APIView):
     authentication_classes = []
     permission_classes = []
 
     def post(self, request, *args, **kwargs):
-        response_data = TelegramAuthenticateInteractor(
+        result = TelegramAuthenticateUseCase(
             request_data=request.data,
             ttl_in_seconds=3600 * 24,
             bot_token=settings.TELEGRAM_BOT_TOKEN,
         ).execute()
-        return Response(response_data, status=status.HTTP_200_OK)
-
-
-class TelegramAuthTestApi(APIView):
-    authentication_classes = []
-    permission_classes = []
-
-    def get(self, request: Request) -> Response:
-        user = User.objects.get(
-            telegram_id=request.query_params['telegram_id']
-        )
-        token = RefreshToken.for_user(user)
-        response = Response()
+        response = Response(status=status.HTTP_200_OK)
         response.set_cookie(
             'access_token',
-            str(token.access_token),
+            result.access_token,
             httponly=True,
             samesite='Lax',
-            expires=token.access_token.get('exp'),
+            expires=str(result.access_token_expires),
         )
         response.set_cookie(
             'refresh_token',
-            str(token),
+            result.refresh_token,
             httponly=True,
             samesite='Lax',
-            expires=token.get('exp'),
+            expires=str(result.refresh_token_expires),
         )
         return response
