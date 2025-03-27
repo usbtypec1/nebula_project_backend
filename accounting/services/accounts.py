@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import Protocol
 
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django.db.models import Sum
 
 from accounting.exceptions import (
@@ -112,13 +113,13 @@ def compute_account_balance(account: HasId | HasInitialBalance) -> Decimal:
         Transfer.objects
         .filter(from_account_id=account.id)
         .aggregate(Sum('amount'))
-    )['amount']
+    ).get('amount', Decimal('0'))
 
     received_amount: Decimal = (
         Transfer.objects
         .filter(to_account_id=account.id)
         .aggregate(total=Sum('amount'))
-    )['amount']
+    ).get('amount', Decimal('0'))
 
     return account.initial_balance - sent_amount + received_amount
 
@@ -150,10 +151,19 @@ def update_account_by_id(
         is_public: bool,
         initial_balance: Decimal,
 ) -> None:
-    updated_count = Account.objects.filter(id=account_id).update(
-        name=name,
-        is_public=is_public,
-        initial_balance=initial_balance,
-    )
+    try:
+        updated_count = Account.objects.filter(id=account_id).update(
+            name=name,
+            is_public=is_public,
+            initial_balance=initial_balance,
+        )
+    except IntegrityError as error:
+        if (
+                error.args[0] == (
+                'UNIQUE constraint failed: accounting_account.name, '
+                'accounting_account.user_id')
+        ):
+            raise AccountAlreadyExistsError
+        raise
     if updated_count == 0:
         raise AccountNotFoundError

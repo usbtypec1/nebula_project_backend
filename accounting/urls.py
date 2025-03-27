@@ -2,6 +2,7 @@ from django.urls import include, path
 
 from accounting.views import (
     AccountListCreateApi,
+    AccountRetrieveUpdateDeleteApi,
     CategoryRetrieveUpdateDeleteApi,
     CategoryListCreateApi,
 )
@@ -30,7 +31,7 @@ accounts_urlpatterns = [
     ),
     path(
         '<int:account_id>/',
-        CategoryRetrieveUpdateDeleteApi.as_view(),
+        AccountRetrieveUpdateDeleteApi.as_view(),
         name='account-retrieve-update-delete',
     )
 ]
