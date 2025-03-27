@@ -108,7 +108,15 @@ class HasInitialBalance(Protocol):
     initial_balance: Decimal
 
 
-def compute_account_balance(account: HasId | HasInitialBalance) -> Decimal:
+@dataclass(frozen=True, slots=True, kw_only=True)
+class AccountBalance:
+    account_id: int
+    balance: Decimal
+
+
+def compute_account_balance(
+        account: HasId | HasInitialBalance,
+) -> AccountBalance:
     sent_amount: Decimal = (
         Transfer.objects
         .filter(from_account_id=account.id)
@@ -121,12 +129,13 @@ def compute_account_balance(account: HasId | HasInitialBalance) -> Decimal:
         .aggregate(total=Sum('amount'))
     ).get('amount', Decimal('0'))
 
-    return account.initial_balance - sent_amount + received_amount
+    balance = account.initial_balance - sent_amount + received_amount
+    return AccountBalance(account_id=account.id, balance=balance)
 
 
 def get_account_with_balance_by_id(account_id: int) -> AccountWithBalanceDto:
     account = get_account_by_id(account_id)
-    balance = compute_account_balance(account)
+    account_balance = compute_account_balance(account)
     return AccountWithBalanceDto(
         id=account.id,
         user_id=account.user_id,
@@ -134,7 +143,7 @@ def get_account_with_balance_by_id(account_id: int) -> AccountWithBalanceDto:
         is_public=account.is_public,
         initial_balance=account.initial_balance,
         created_at=account.created_at,
-        balance=balance,
+        balance=account_balance.balance,
     )
 
 
@@ -167,3 +176,82 @@ def update_account_by_id(
         raise
     if updated_count == 0:
         raise AccountNotFoundError
+
+
+def compute_account_balances(
+        accounts: list[HasId | HasInitialBalance],
+) -> list[AccountBalance]:
+    account_ids = {account.id for account in accounts}
+
+    sent_amounts = (
+        Transfer.objects
+        .filter(from_account_id__in=account_ids)
+        .values('from_account_id').annotate(amount=Sum('amount'))
+    )
+
+    received_amounts = (
+        Transfer.objects
+        .filter(to_account_id__in=account_ids)
+        .values('to_account_id').annotate(amount=Sum('amount'))
+    )
+
+    account_id_to_sent_amount = {
+        entry['from_account_id']: entry['amount']
+        for entry in sent_amounts
+    }
+    account_id_to_received_amount = {
+        entry['to_account_id']: entry['amount']
+        for entry in received_amounts
+    }
+
+    account_balances: list[AccountBalance] = []
+    for account in accounts:
+        sent_amount = account_id_to_sent_amount.get(account.id, Decimal('0'))
+        received_amount = account_id_to_received_amount.get(
+            account.id,
+            Decimal('0'),
+        )
+        balance = account.initial_balance - sent_amount + received_amount
+        account_balances.append(
+            AccountBalance(account_id=account.id, balance=balance)
+        )
+
+    return account_balances
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class AccountsWithBalanceDto:
+    accounts: list[AccountWithBalanceDto]
+    total_balance: Decimal
+
+
+def get_accounts_with_balance_by_user_id(
+        user_id: int,
+) -> AccountsWithBalanceDto:
+    accounts = Account.objects.filter(user_id=user_id).all()
+    account_balances = compute_account_balances(accounts)
+    account_id_to_balance = {
+        account_balance.account_id: account_balance.balance
+        for account_balance in account_balances
+    }
+
+    accounts = [
+        AccountWithBalanceDto(
+            id=account.id,
+            user_id=account.user_id,
+            name=account.name,
+            is_public=account.is_public,
+            initial_balance=account.initial_balance,
+            created_at=account.created_at,
+            balance=account_id_to_balance.get(account.id, Decimal('0')),
+        )
+        for account in accounts
+    ]
+
+    total_balance = sum(
+        account_balance.balance for account_balance in account_balances
+    )
+    return AccountsWithBalanceDto(
+        accounts=accounts,
+        total_balance=total_balance,
+    )

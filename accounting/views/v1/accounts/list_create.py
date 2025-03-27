@@ -7,15 +7,17 @@ from rest_framework.views import APIView
 
 from accounting.serializers import (
     AccountCreateInputSerializer,
-    AccountCreateOutputSerializer,
+    AccountCreateOutputSerializer, AccountListOutputSerializer,
 )
-from accounting.use_cases import AccountCreateUseCase
+from accounting.use_cases import AccountCreateUseCase, AccountListUseCase
 
 
 class AccountListCreateApi(APIView):
 
     def get(self, request: Request) -> Response:
-        pass
+        accounts = AccountListUseCase(user_id=request.user.id).execute()
+        serializer = AccountListOutputSerializer(accounts)
+        return Response(serializer.data)
 
     def post(self, request: Request) -> Response:
         serializer = AccountCreateInputSerializer(data=request.data)
