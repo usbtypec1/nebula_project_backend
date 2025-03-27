@@ -2,7 +2,12 @@ import datetime
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-from accounting.exceptions import CategoryNotFoundError
+from django.core.exceptions import ValidationError
+
+from accounting.exceptions import (
+    CategoryAlreadyExistsError,
+    CategoryNotFoundError,
+)
 from accounting.models.categories import Category
 
 
@@ -90,7 +95,14 @@ def create_category(
         type=type,
         parent_id=parent_id,
     )
-    category.full_clean()
+    try:
+        category.full_clean()
+    except ValidationError as error:
+        if ('Category with this Category name, User and Type already exists.'
+                in error.messages):
+            raise CategoryAlreadyExistsError
+        raise error
+
     category.save()
 
     return CategoryCreateResultDto(

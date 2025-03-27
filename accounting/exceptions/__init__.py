@@ -1,4 +1,4 @@
-from .categories import CategoryNotFoundError
+from .categories import CategoryNotFoundError, CategoryAlreadyExistsError
 
 
-__all__ = ('CategoryNotFoundError',)
+__all__ = ('CategoryNotFoundError', 'CategoryAlreadyExistsError')

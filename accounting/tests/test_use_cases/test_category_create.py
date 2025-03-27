@@ -1,6 +1,9 @@
 import pytest
 
-from accounting.exceptions import CategoryNotFoundError
+from accounting.exceptions import (
+    CategoryAlreadyExistsError,
+    CategoryNotFoundError,
+)
 from accounting.models import Category
 from accounting.services.categories import CategoryCreateResultDto
 from accounting.tests.factories import CategoryFactory
@@ -58,12 +61,11 @@ def test_user_not_found():
 @pytest.mark.django_db
 def test_subcategory_successfully_created():
     parent = CategoryFactory()
-    user = UserFactory()
 
     result = CategoryCreateUseCase(
         name='Food',
         parent_id=parent.id,
-        user_id=user.id,
+        user_id=parent.user.id,
         type=Category.Type.EXPENSE,
     ).execute()
 
@@ -71,8 +73,21 @@ def test_subcategory_successfully_created():
         id=result.id,
         name='Food',
         parent_id=parent.id,
-        user_id=user.id,
+        user_id=parent.user.id,
         type=Category.Type.EXPENSE,
         created_at=result.created_at,
         updated_at=result.updated_at,
     )
+
+
+@pytest.mark.django_db
+def test_category_with_this_name_already_exists():
+    category = CategoryFactory()
+
+    with pytest.raises(CategoryAlreadyExistsError):
+        CategoryCreateUseCase(
+            name=category.name,
+            parent_id=None,
+            user_id=category.user.id,
+            type=category.type,
+        ).execute()
