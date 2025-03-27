@@ -135,3 +135,9 @@ def get_account_with_balance_by_id(account_id: int) -> AccountWithBalanceDto:
         created_at=account.created_at,
         balance=balance,
     )
+
+
+def delete_account_by_id(account_id: int) -> None:
+    deleted_count, _ = Account.objects.filter(id=account_id).delete()
+    if deleted_count == 0:
+        raise AccountNotFoundError
