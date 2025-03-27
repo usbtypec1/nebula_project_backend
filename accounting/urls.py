@@ -1,8 +1,9 @@
 from django.urls import include, path
 
 from accounting.views import (
-    CategoryListCreateApi,
+    AccountListCreateApi,
     CategoryRetrieveUpdateDeleteApi,
+    CategoryListCreateApi,
 )
 
 
@@ -21,6 +22,15 @@ categories_urlpatterns = [
     ),
 ]
 
+accounts_urlpatterns = [
+    path(
+        '',
+        AccountListCreateApi.as_view(),
+        name='account-list-create',
+    ),
+]
+
 urlpatterns = [
     path('categories/', include(categories_urlpatterns)),
+    path('accounts/', include(accounts_urlpatterns)),
 ]
