@@ -6,8 +6,6 @@ import urllib.parse
 from dataclasses import dataclass
 from typing import TypedDict
 
-from rest_framework_simplejwt.tokens import RefreshToken
-
 from telegram_auth.exceptions import (
     TelegramMiniAppInitDataExpiredError,
     TelegramMiniAppInitDataInvalidError,
@@ -116,50 +114,19 @@ def parse_init_data(init_data: str) -> TelegramMiniAppInitData:
     )
 
 
-class TelegramAuthenticateResult(TypedDict):
-    access_token: str
-    refresh_token: str
-
-
-@dataclass(frozen=True, slots=True, kw_only=True)
-class TelegramAuthenticateInteractor:
-    request_data: dict | list
-    ttl_in_seconds: int
-    bot_token: str
-
-    def execute(self) -> TelegramAuthenticateResult:
-        init_data = parse_request_data(self.request_data)
-
-        ensure_init_data_valid(
-            init_data=init_data,
-            bot_token=self.bot_token,
-        )
-
-        init_data = parse_init_data(init_data)
-
-        ensure_init_data_not_expired(
-            auth_date=init_data.auth_date,
-            ttl_in_seconds=self.ttl_in_seconds,
-        )
-
-        user, _ = User.objects.get_or_create(
-            telegram_id=init_data.user.id,
-            defaults={
-                "full_name": init_data.user.full_name,
-                "username": init_data.user.username,
-            }
-        )
-
-        refresh = RefreshToken.for_user(user)
-
-        return {
-            'access_token': str(refresh.access_token),
-            'refresh_token': str(refresh),
-        }
-
-
 def ensure_user_exists(
         user_id: int,
 ) -> None:
     if not User.objects.filter(id=user_id).exists():
         raise UserNotFoundError
+
+
+def upsert_user(init_data: TelegramMiniAppInitData) -> User:
+    user, _ = User.objects.get_or_create(
+        telegram_id=init_data.user.id,
+        defaults={
+            "full_name": init_data.user.full_name,
+            "username": init_data.user.username,
+        }
+    )
+    return user

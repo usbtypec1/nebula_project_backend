@@ -1,21 +1,17 @@
-from django.conf import settings
 from django.urls import path
-from .views import TelegramAuthView
+
+from telegram_auth.views import CookieTokenRefreshApi, TelegramAuthApi
 
 
 urlpatterns = [
     path(
-        'token/', TelegramAuthView.as_view(),
-        name='token_obtain_telegram',
+        'token/',
+        TelegramAuthApi.as_view(),
+        name='token-obtain',
+    ),
+    path(
+        'token/refresh/',
+        CookieTokenRefreshApi.as_view(),
+        name='token-refresh',
     ),
 ]
-
-if settings.DEBUG:
-    from .views import TelegramAuthTestApi
-
-    urlpatterns.append(
-        path(
-            'test-token/', TelegramAuthTestApi.as_view(),
-            name='test_telegram_auth',
-        )
-    )
