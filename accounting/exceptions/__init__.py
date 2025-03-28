@@ -3,7 +3,11 @@ from .accounts import (
     AccountAccessDeniedError,
     AccountNotFoundError,
 )
-from .categories import CategoryNotFoundError, CategoryAlreadyExistsError
+from .categories import (
+    CategoryNotFoundError,
+    CategoryAlreadyExistsError,
+    CategoryPermissionDeniedError,
+)
 
 
 __all__ = (
@@ -12,4 +16,5 @@ __all__ = (
     'AccountNotFoundError',
     'CategoryNotFoundError',
     'CategoryAlreadyExistsError',
+    'CategoryPermissionDeniedError',
 )

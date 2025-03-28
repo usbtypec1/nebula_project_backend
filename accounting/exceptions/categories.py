@@ -13,3 +13,9 @@ class CategoryAlreadyExistsError(APIException):
     status_code = status.HTTP_409_CONFLICT
     default_code = 'category_already_exists'
     default_detail = _('Category already exists')
+
+
+class CategoryPermissionDeniedError(APIException):
+    status_code = status.HTTP_403_FORBIDDEN
+    default_code = 'category_permission_denied'
+    default_detail = _('Permission denied')
