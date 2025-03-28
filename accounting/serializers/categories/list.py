@@ -13,7 +13,7 @@ class CategoryListInputSerializer(serializers.Serializer):
 class CategoryListItemSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
-    type = serializers.CharField(choices=Category.Type.choices)
+    type = serializers.ChoiceField(choices=Category.Type.choices)
     parent_id = serializers.IntegerField(allow_null=True)
     updated_at = serializers.DateTimeField()
     created_at = serializers.DateTimeField()
