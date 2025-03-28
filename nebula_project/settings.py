@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'drf_standardized_errors',
     'telegram_auth',
     'accounting',
+    'exchange_rates',
 ]
 
 MIDDLEWARE = [
