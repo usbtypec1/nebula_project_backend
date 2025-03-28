@@ -1,12 +1,13 @@
 import datetime
 from collections.abc import Iterable
 from dataclasses import dataclass
+from typing import Protocol
 
 from django.core.exceptions import ValidationError
 
 from accounting.exceptions import (
     CategoryAlreadyExistsError,
-    CategoryNotFoundError,
+    CategoryNotFoundError, CategoryPermissionDeniedError,
 )
 from accounting.models.categories import Category
 
@@ -106,3 +107,24 @@ def create_category(
         created_at=category.created_at,
         updated_at=category.updated_at,
     )
+
+
+def delete_category_by_id(category_id: int) -> None:
+    Category.objects.filter(id=category_id).delete()
+
+
+def get_category_by_id(category_id: int) -> Category:
+    return Category.objects.get(id=category_id)
+
+
+class HasUserId(Protocol):
+    user_id: int
+
+
+def ensure_category_permission_allowed(
+        *,
+        category: HasUserId,
+        user_id: int,
+) -> None:
+    if category.user_id != user_id:
+        raise CategoryPermissionDeniedError
