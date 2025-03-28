@@ -20,14 +20,10 @@ class CategoryListCreateApi(APIView):
     def get(self, request: Request) -> Response:
         serializer = CategoryListInputSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
-        take: int = serializer.validated_data['take']
-        skip: int = serializer.validated_data['skip']
         category_type: int | None = serializer.validated_data['type']
 
         category_list_result = CategoryListUseCase(
             user_id=request.user.id,
-            take=take,
-            skip=skip,
             category_type=category_type,
         ).execute()
 

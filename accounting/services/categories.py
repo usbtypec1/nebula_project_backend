@@ -25,7 +25,6 @@ class CategoryListItemDto:
 class CategoryListDto:
     user_id: int
     categories: list[CategoryListItemDto]
-    is_end_of_list_reached: bool
 
 
 def map_categories_to_dto(
@@ -47,22 +46,15 @@ def map_categories_to_dto(
 def get_categories_page(
         *,
         user_id: int,
-        take: int,
-        skip: int,
         category_type: int | None = None,
 ) -> CategoryListDto:
     categories = Category.objects.filter(user_id=user_id)
     if category_type is not None:
         categories = categories.filter(type=category_type)
 
-    categories = categories[skip:skip + take + 1]
-    is_end_of_list_reached = len(categories) <= take
-    categories = categories[:take]
-
     return CategoryListDto(
         user_id=user_id,
         categories=map_categories_to_dto(categories),
-        is_end_of_list_reached=is_end_of_list_reached,
     )
 
 
