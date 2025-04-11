@@ -11,19 +11,11 @@ class ExchangeRate(models.Model):
     currency_code = models.CharField(
         max_length=3,
         choices=CurrencyCode.choices,
+        unique=True,
     )
-    buy_rate = models.DecimalField(max_digits=10, decimal_places=2)
-    sell_rate = models.DecimalField(max_digits=10, decimal_places=2)
-    source_name = models.CharField(max_length=255)
-    logo_url = models.URLField(null=True, blank=True)
+    rate = models.DecimalField(max_digits=10, decimal_places=2)
     updated_at = models.DateTimeField()
 
     class Meta:
         verbose_name = 'Exchange Rate'
         verbose_name_plural = 'Exchange Rates'
-        constraints = (
-            models.UniqueConstraint(
-                fields=('source_name', 'currency_code'),
-                name='unique_exchange_rate',
-            ),
-        )

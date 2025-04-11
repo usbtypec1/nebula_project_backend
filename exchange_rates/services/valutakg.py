@@ -1,6 +1,5 @@
 import contextlib
 import datetime
-import enum
 from collections.abc import Generator
 from dataclasses import dataclass
 from decimal import Decimal
@@ -48,6 +47,8 @@ def parse_valuta_kg_exchange_rates_page_response(
 ) -> list[ExchangeRateDto]:
     response.raise_for_status()
     soup = BeautifulSoup(response.text, 'lxml')
+    with open('response.html', 'w', encoding='utf-8') as file:
+        file.write(response.text)
 
     table_body = soup.find('div', attrs={'class': ['rate-list', 'active']})
     if table_body is None:
@@ -69,7 +70,8 @@ def parse_valuta_kg_exchange_rates_page_response(
         else:
             logo_url = img.get('src')
 
-        if logo_url is None:
+        print(logo_url)
+        if not logo_url:
             logo_url = f'https:{logo_url}'
 
         source_name = source_info_td.find('h4')
