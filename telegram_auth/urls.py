@@ -1,6 +1,6 @@
 from django.urls import path
 
-from telegram_auth.views import CookieTokenRefreshApi, TelegramAuthApi, TelegramAuthTestApi
+from telegram_auth.views import CookieTokenRefreshApi, TelegramAuthApi
 
 
 urlpatterns = [
@@ -8,10 +8,6 @@ urlpatterns = [
         'token/',
         TelegramAuthApi.as_view(),
         name='token-obtain',
-    ),
-    path(
-        'token/test',
-        TelegramAuthTestApi.as_view(),
     ),
     path(
         'token/refresh/',
