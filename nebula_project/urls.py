@@ -22,4 +22,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('v1/accounting/', include('accounting.urls')),
     path('auth/', include('telegram_auth.urls')),
+    path('v1/exchange-rates/', include('exchange_rates.urls')),
 ]

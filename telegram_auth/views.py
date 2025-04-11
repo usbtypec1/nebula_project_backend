@@ -3,7 +3,6 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from telegram_auth.serializers import CookieTokenRefreshSerializer
@@ -51,30 +50,5 @@ class TelegramAuthApi(APIView):
             httponly=True,
             samesite='Lax',
             expires=str(result.refresh_token_expires),
-        )
-        return response
-
-
-class TelegramAuthTestApi(APIView):
-    authentication_classes = []
-    permission_classes = []
-
-    def post(self, request, *args, **kwargs):
-        user = User.objects.get(telegram_id=int(request.query_params['telegram_id']))
-        token = RefreshToken.for_user(user)
-        response = Response(status=status.HTTP_200_OK)
-        response.set_cookie(
-            'access_token',
-            str(token.access_token),
-            httponly=True,
-            samesite='Lax',
-            expires=str(token.get('exp')),
-        )
-        response.set_cookie(
-            'refresh_token',
-            str(token),
-            httponly=True,
-            samesite='Lax',
-            expires=str(token.get('exp')),
         )
         return response
