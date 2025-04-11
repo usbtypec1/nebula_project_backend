@@ -8,6 +8,7 @@ from .categories import (
     CategoryAlreadyExistsError,
     CategoryPermissionDeniedError,
 )
+from .transactions import TransactionAccessDeniedError
 
 
 __all__ = (
@@ -17,4 +18,5 @@ __all__ = (
     'CategoryNotFoundError',
     'CategoryAlreadyExistsError',
     'CategoryPermissionDeniedError',
+    'TransactionAccessDeniedError',
 )

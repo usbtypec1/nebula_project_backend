@@ -4,11 +4,24 @@ from accounting.views import (
     AccountListCreateApi,
     AccountRetrieveUpdateDeleteApi,
     CategoryRetrieveUpdateDeleteApi,
-    CategoryListCreateApi,
+    CategoryListCreateApi, TransactionListCreateApi,
 )
 
 
 app_name = 'accounting'
+
+transactions_urlpatterns = [
+    path(
+        '',
+        TransactionListCreateApi.as_view(),
+        name='transaction-list-create',
+    ),
+    path(
+        '<int:transaction_id>/',
+        TransactionListCreateApi.as_view(),
+        name='transaction-retrieve-update-delete',
+    ),
+]
 
 categories_urlpatterns = [
     path(
@@ -39,4 +52,5 @@ accounts_urlpatterns = [
 urlpatterns = [
     path('categories/', include(categories_urlpatterns)),
     path('accounts/', include(accounts_urlpatterns)),
+    path('transactions/', include(transactions_urlpatterns)),
 ]
