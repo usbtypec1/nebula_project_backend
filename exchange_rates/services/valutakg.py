@@ -1,6 +1,5 @@
 import contextlib
 import datetime
-import enum
 from collections.abc import Generator
 from dataclasses import dataclass
 from decimal import Decimal
