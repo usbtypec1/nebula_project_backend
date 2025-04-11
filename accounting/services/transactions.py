@@ -37,6 +37,24 @@ class TransactionsPage:
     pagination: Pagination
 
 
+def map_transaction_to_list_item(
+        transaction: Transaction,
+) -> TransactionListItem:
+    return TransactionListItem(
+        id=transaction.id,
+        account_id=transaction.account.id,
+        account_name=transaction.account.name,
+        category_id=transaction.category.id,
+        category_type=transaction.category.type,
+        category_name=transaction.category.name,
+        amount=transaction.amount,
+        description=transaction.description,
+        date=transaction.date,
+        created_at=transaction.created_at,
+        updated_at=transaction.updated_at,
+    )
+
+
 def create_transaction(
         *,
         account_id: int,
@@ -55,19 +73,7 @@ def create_transaction(
     transaction.full_clean()
     transaction.save()
 
-    return TransactionListItem(
-        id=transaction.id,
-        account_id=transaction.account.id,
-        account_name=transaction.account.name,
-        category_id=transaction.category.id,
-        category_type=transaction.category.type,
-        category_name=transaction.category.name,
-        amount=transaction.amount,
-        description=transaction.description,
-        date=transaction.date,
-        created_at=transaction.created_at,
-        updated_at=transaction.updated_at,
-    )
+    return map_transaction_to_list_item(transaction)
 
 
 def get_transactions_page(
@@ -89,19 +95,7 @@ def get_transactions_page(
     )
 
     transactions = [
-        TransactionListItem(
-            id=transaction.id,
-            account_id=transaction.account.id,
-            account_name=transaction.account.name,
-            category_id=transaction.category.id,
-            category_type=transaction.category.type,
-            category_name=transaction.category.name,
-            amount=transaction.amount,
-            description=transaction.description,
-            date=transaction.date,
-            created_at=transaction.created_at,
-            updated_at=transaction.updated_at,
-        )
+        map_transaction_to_list_item(transaction)
         for transaction in transactions
     ]
 

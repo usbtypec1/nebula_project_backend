@@ -2,25 +2,21 @@ import datetime
 from dataclasses import dataclass
 from decimal import Decimal
 
-from accounting.services.transactions import (
-    create_transaction,
-    TransactionListItem,
-)
+from accounting.services.transactions import update_transaction
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
-class TransactionCreateUseCase:
+class TransactionUpdateUseCase:
+    transaction_id: int
     user_id: int
-    account_id: int
-    category_id: int
     date: datetime.datetime
     amount: Decimal
     description: str | None
 
-    def execute(self) -> TransactionListItem:
-        return create_transaction(
-            account_id=self.account_id,
-            category_id=self.category_id,
+    def execute(self) -> None:
+        update_transaction(
+            transaction_id=self.transaction_id,
+            user_id=self.user_id,
             date=self.date,
             amount=self.amount,
             description=self.description,
