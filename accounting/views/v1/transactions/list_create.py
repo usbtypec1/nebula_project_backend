@@ -24,6 +24,7 @@ class TransactionListCreateApi(APIView):
         transactions_page = TransactionListUseCase(
             take=data['take'],
             skip=data['skip'],
+            user_id=request.user.id,
         ).execute()
         serializer = TransactionListOutputSerializer(transactions_page)
         return Response(serializer.data)
