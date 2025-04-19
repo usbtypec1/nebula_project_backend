@@ -1,27 +1,20 @@
-from django.shortcuts import render
-from dataclasses import asdict
-from django.http import JsonResponse
-from exchange_rates.services import rates_parser
-from exchange_rates.models import BaseExchangeRateData, ExchangeRateData
-from typing import Iterable
-# Create your views here.
+from rest_framework.request import Request
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-def get_rates(requests):
-    rateItems: Iterable[ExchangeRateData] = rates_parser()
-    data = []
+from exchange_rates.serializers import ExchangeRateListOutputSerializer
+from exchange_rates.use_cases.exchange_rate_list import ExchangeRateListUseCase
 
-    for item in rateItems:
-        rate_dict = asdict(item)
-        data.append(rate_dict)
 
-        BaseExchangeRateData.objects.update_or_create(
-            bank_name=item.bank_name,
-            currency_code=item.currency_code,
-            defaults={
-                "buy_rate": rate_dict["buy_rate"],
-                "sell_rate": rate_dict["sell_rate"],
-                "updated_at": rate_dict["updated_at"],
-            }
+class ExchangeRateListApi(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request: Request) -> Response:
+        exchange_rates = ExchangeRateListUseCase().execute()
+
+        serializer = ExchangeRateListOutputSerializer(
+            exchange_rates,
+            many=True,
         )
-
-    return JsonResponse(data, safe=False)
+        return Response({'exchange_rates': serializer.data})

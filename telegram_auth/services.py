@@ -96,7 +96,7 @@ def parse_init_data(init_data: str) -> TelegramMiniAppInitData:
     telegram_id: int = user["id"]
     first_name: str = user["first_name"]
     last_name: str | None = user["last_name"] or None
-    username: str | None = user["username"] or None
+    username: str | None = user.get("username")
 
     auth_date = datetime.datetime.fromtimestamp(
         int(params["auth_date"]),

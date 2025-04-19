@@ -1,6 +1,8 @@
 from django.urls import path
-from exchange_rates.views import get_rates
+
+from exchange_rates.views import ExchangeRateListApi
+
 
 urlpatterns = [
-    path('', get_rates, name="get-rates")
+    path('', ExchangeRateListApi.as_view()),
 ]
