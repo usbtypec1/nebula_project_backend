@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from django.conf import settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from telegram_auth.services import (
@@ -32,10 +33,11 @@ class TelegramAuthenticateUseCase:
 
         init_data = parse_init_data(init_data)
 
-        ensure_init_data_not_expired(
-            auth_date=init_data.auth_date,
-            ttl_in_seconds=self.ttl_in_seconds,
-        )
+        if settings.ENSURE_TELEGRAM_INIT_DATA_NOT_EXPIRED:
+            ensure_init_data_not_expired(
+                auth_date=init_data.auth_date,
+                ttl_in_seconds=self.ttl_in_seconds,
+            )
 
         user = upsert_user(init_data)
         refresh = RefreshToken.for_user(user)

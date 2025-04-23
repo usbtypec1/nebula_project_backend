@@ -126,3 +126,8 @@ TELEGRAM_BOT_TOKEN = env.str('TELEGRAM_BOT_TOKEN')
 DRF_STANDARDIZED_ERRORS = {
     'EXCEPTION_FORMATTER_CLASS': 'telegram_auth.exceptions.ExceptionFormatter',
 }
+
+ENSURE_TELEGRAM_INIT_DATA_NOT_EXPIRED = env.bool(
+    'ENSURE_TELEGRAM_INIT_DATA_NOT_EXPIRED',
+    default=True,
+)
