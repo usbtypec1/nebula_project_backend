@@ -1,6 +1,7 @@
 from django.urls import path
+from rest_framework_simplejwt.views import TokenRefreshView
 
-from telegram_auth.views import CookieTokenRefreshApi, TelegramAuthApi
+from telegram_auth.views import TelegramAuthApi
 
 
 urlpatterns = [
@@ -11,7 +12,7 @@ urlpatterns = [
     ),
     path(
         'token/refresh/',
-        CookieTokenRefreshApi.as_view(),
+        TokenRefreshView.as_view(),
         name='token-refresh',
     ),
 ]
