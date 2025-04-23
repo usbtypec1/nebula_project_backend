@@ -36,19 +36,8 @@ class TelegramAuthApi(APIView):
             ttl_in_seconds=3600 * 24,
             bot_token=settings.TELEGRAM_BOT_TOKEN,
         ).execute()
-        response = Response(status=status.HTTP_200_OK)
-        response.set_cookie(
-            'access_token',
-            result.access_token,
-            httponly=True,
-            samesite='Lax',
-            expires=str(result.access_token_expires),
-        )
-        response.set_cookie(
-            'refresh_token',
-            result.refresh_token,
-            httponly=True,
-            samesite='Lax',
-            expires=str(result.refresh_token_expires),
-        )
-        return response
+        response_data = {
+            'access_token': result.access_token,
+            'refresh_token': result.refresh_token,
+        }
+        return Response(response_data, status.HTTP_200_OK)
