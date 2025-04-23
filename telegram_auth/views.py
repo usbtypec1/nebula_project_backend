@@ -9,7 +9,6 @@ from telegram_auth.use_cases import TelegramAuthenticateUseCase
 User = get_user_model()
 
 
-
 class TelegramAuthApi(APIView):
     authentication_classes = []
     permission_classes = []
