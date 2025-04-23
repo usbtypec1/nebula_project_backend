@@ -110,7 +110,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'telegram_auth.auth.CookiesJWTAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'EXCEPTION_HANDLER': 'drf_standardized_errors.handler.exception_handler',
 }
@@ -126,3 +126,8 @@ TELEGRAM_BOT_TOKEN = env.str('TELEGRAM_BOT_TOKEN')
 DRF_STANDARDIZED_ERRORS = {
     'EXCEPTION_FORMATTER_CLASS': 'telegram_auth.exceptions.ExceptionFormatter',
 }
+
+ENSURE_TELEGRAM_INIT_DATA_NOT_EXPIRED = env.bool(
+    'ENSURE_TELEGRAM_INIT_DATA_NOT_EXPIRED',
+    default=True,
+)
