@@ -1,7 +1,5 @@
 from decimal import Decimal
-from unittest.mock import patch
 
-import httpx
 import pytest
 from django.urls import reverse
 from rest_framework import status
