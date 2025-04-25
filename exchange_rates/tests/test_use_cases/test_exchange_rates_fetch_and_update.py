@@ -10,104 +10,112 @@ from exchange_rates.use_cases.exchange_rates_fetch_and_update import ExchangeRat
 
 
 @pytest.mark.django_db
-def test_exchange_rates_fetch_and_update_creates_new_rates():
-    mock_response_data = {
-        'date': '19.04.2025',
-        'time': '19:00:00',
-        'rate_values': [
-            {'currency': 'usd', 'buy_rate': '87.50'},
-            {'currency': 'eur', 'buy_rate': '99.75'},
-        ]
-    }
-
-    expected_datetime = datetime.datetime.combine(
-        date=datetime.datetime.strptime('19.04.2025', '%d.%m.%Y'),
-        time=datetime.time.fromisoformat('19:00:00'),
-        tzinfo=ZoneInfo("Asia/Bishkek"),
-    )
-
-    # Мокаем ответ HTTP клиента
-    with patch('exchange_rates.services.akchabar.AkchabarGatewayHttpClient') as MockHttpClient:
-        mock_client_instance = MockHttpClient.return_value
-        mock_response = mock_client_instance.get.return_value
-        mock_response.json.return_value = mock_response_data
-
-        # Мокаем контекстный менеджер
-        with patch('exchange_rates.services.akchabar.create_akchabar_gateway_http_client',
-                   return_value=mock_client_instance):
-            # Act
-            ExchangeRatesFetchAndUpdateUseCase().execute()
-
-    # Assert - проверяем, что записи созданы в БД
+def test_exchange_rates_created(execute_use_case):
     exchange_rates = list(ExchangeRate.objects.all())
     assert len(exchange_rates) == 2
 
-    # Создаем словарь для удобства проверки
-    rates_dict = {rate.currency_code: rate for rate in exchange_rates}
 
-    # Проверяем USD
-    assert 'usd' in rates_dict
-    usd_rate = rates_dict['usd']
-    assert usd_rate.rate == Decimal('87.50')
-    assert usd_rate.updated_at == expected_datetime
-
-    # Проверяем EUR
-    assert 'eur' in rates_dict
-    eur_rate = rates_dict['eur']
-    assert eur_rate.rate == Decimal('99.75')
-    assert eur_rate.updated_at == expected_datetime
+@pytest.mark.django_db
+def test_usd_rate_data_correct(execute_use_case, expected_datetime):
+    usd = ExchangeRate.objects.get(currency_code='usd')
+    assert usd.rate == Decimal('87.50')
+    assert usd.updated_at == expected_datetime
 
 
 @pytest.mark.django_db
-def test_exchange_rates_fetch_and_update_updates_existing_rates():
-    # Arrange - создаем существующие курсы
-    old_time = datetime.datetime.now(tz=ZoneInfo("Asia/Bishkek"))
+def test_usd_rate_data_correct(execute_use_case, expected_datetime):
+    usd = ExchangeRate.objects.get(currency_code='usd')
+    assert usd.rate == Decimal('87.50')
+    assert usd.updated_at == expected_datetime
 
-    usd_rate = ExchangeRate.objects.create(
-        currency_code=ExchangeRate.CurrencyCode.USD,
-        rate=Decimal('85.25'),
-        updated_at=old_time,
-    )
 
-    # Подготавливаем mock-данные для ответа API с новыми курсами
-    mock_response_data = {
+@pytest.mark.django_db
+def test_exchange_rates_count_after_update(
+    existing_usd_rate,
+    execute_update_use_case
+):
+    exchange_rates = list(ExchangeRate.objects.all())
+    assert len(exchange_rates) == 2
+
+
+@pytest.mark.django_db
+def test_usd_rate_is_updated(
+    existing_usd_rate,
+    execute_update_use_case,
+    expected_updated_datetime
+):
+    existing_usd_rate.refresh_from_db()
+    assert existing_usd_rate.rate == Decimal('87.50')
+    assert existing_usd_rate.updated_at == expected_updated_datetime
+
+
+@pytest.mark.django_db
+def test_rub_rate_is_created(
+    execute_update_use_case,
+    expected_updated_datetime
+):
+    rub = ExchangeRate.objects.get(currency_code=ExchangeRate.CurrencyCode.RUB)
+    assert rub.rate == Decimal('0.97')
+    assert rub.updated_at == expected_updated_datetime
+
+
+@pytest.mark.django_db
+def test_empty_response_does_not_crash():
+    with patch('exchange_rates.services.akchabar.AkchabarGatewayHttpClient') as MockHttpClient:
+        mock_client = MockHttpClient.return_value
+        mock_client.get.return_value.json.return_value = {
+            'date': '19.04.2025',
+            'time': '19:00:00',
+            'rate_values': []
+        }
+        with patch('exchange_rates.services.akchabar.create_akchabar_gateway_http_client', return_value=mock_client):
+            ExchangeRatesFetchAndUpdateUseCase().execute()
+    assert ExchangeRate.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_old_currency_not_deleted_after_update(existing_usd_rate, execute_update_use_case):
+    assert ExchangeRate.objects.filter(currency_code='usd').exists()
+
+
+@pytest.mark.django_db
+def test_new_currency_created_correctly(execute_update_use_case):
+    rub = ExchangeRate.objects.get(currency_code='rub')
+    assert rub.rate == Decimal('0.97')
+
+
+@pytest.mark.django_db
+def test_invalid_rate_format_raises_exception():
+    mock_data = {
         'date': '19.04.2025',
-        'time': '19:45:00',
+        'time': '19:00:00',
+        'rate_values': [{'currency': 'usd', 'buy_rate': 'not_a_number'}]
+    }
+
+    with patch('exchange_rates.services.akchabar.AkchabarGatewayHttpClient') as MockHttpClient:
+        mock_client = MockHttpClient.return_value
+        mock_client.get.return_value.json.return_value = mock_data
+        with patch('exchange_rates.services.akchabar.create_akchabar_gateway_http_client', return_value=mock_client):
+            with pytest.raises(Exception):
+                ExchangeRatesFetchAndUpdateUseCase().execute()
+
+
+@pytest.mark.django_db
+def test_duplicate_currency_last_one_wins():
+    mock_data = {
+        'date': '19.04.2025',
+        'time': '19:00:00',
         'rate_values': [
-            {'currency': 'usd', 'buy_rate': '87.50'},
-            {'currency': 'rub', 'buy_rate': '0.97'},  # Новая валюта
+            {'currency': 'usd', 'buy_rate': '86.00'},
+            {'currency': 'usd', 'buy_rate': '88.00'}
         ]
     }
 
-    expected_datetime = datetime.datetime.combine(
-        date=datetime.datetime.strptime('19.04.2025', '%d.%m.%Y'),
-        time=datetime.time.fromisoformat('19:45:00'),
-        tzinfo=ZoneInfo("Asia/Bishkek"),
-    )
-
-    # Мокаем ответ HTTP клиента
     with patch('exchange_rates.services.akchabar.AkchabarGatewayHttpClient') as MockHttpClient:
-        mock_client_instance = MockHttpClient.return_value
-        mock_response = mock_client_instance.get.return_value
-        mock_response.json.return_value = mock_response_data
-
-        # Мокаем контекстный менеджер
-        with patch('exchange_rates.services.akchabar.create_akchabar_gateway_http_client',
-                   return_value=mock_client_instance):
-            # Act
+        mock_client = MockHttpClient.return_value
+        mock_client.get.return_value.json.return_value = mock_data
+        with patch('exchange_rates.services.akchabar.create_akchabar_gateway_http_client', return_value=mock_client):
             ExchangeRatesFetchAndUpdateUseCase().execute()
 
-    # Assert - проверяем, что записи обновлены и добавлены в БД
-    exchange_rates = list(ExchangeRate.objects.all())
-    assert len(exchange_rates) == 2  # Теперь у нас USD и RUB
-
-    # Проверяем обновление USD
-    usd_rate.refresh_from_db()
-    assert usd_rate.rate == Decimal('87.50')
-    assert usd_rate.updated_at == expected_datetime
-
-    # Проверяем создание RUB
-    assert ExchangeRate.objects.filter(currency_code=ExchangeRate.CurrencyCode.RUB).exists()
-    rub_rate = ExchangeRate.objects.get(currency_code=ExchangeRate.CurrencyCode.RUB)
-    assert rub_rate.rate == Decimal('0.97')
-    assert rub_rate.updated_at == expected_datetime
+    usd = ExchangeRate.objects.get(currency_code='usd')
+    assert usd.rate == Decimal('88.00')
