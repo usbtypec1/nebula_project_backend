@@ -135,6 +135,7 @@ wheels = [
 ]
 
 [[package]]
+
 name = "fake-useragent"
 version = "2.2.0"
 source = { registry = "https://pypi.org/simple" }
