@@ -81,11 +81,22 @@ def get_transactions_page(
         user_id: int,
         take: int = 1000,
         skip: int = 0,
+        from_date: datetime.datetime | None = None,
+        to_date: datetime.datetime | None = None,
+        category_type: int | None = None,
 ) -> TransactionsPage:
     user_transactions = (
         Transaction.objects
         .filter(Q(account__user_id=user_id) | Q(category__user_id=user_id))
     )
+    if from_date:
+        user_transactions = user_transactions.filter(date__gte=from_date)
+    if to_date:
+        user_transactions = user_transactions.filter(date__lte=to_date)
+    if category_type:
+        user_transactions = user_transactions.filter(
+            category__type=category_type
+        )
     transactions_count = user_transactions.count()
     transactions = (
         user_transactions

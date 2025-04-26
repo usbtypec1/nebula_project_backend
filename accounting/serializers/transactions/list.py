@@ -6,6 +6,12 @@ from accounting.models import Category
 class TransactionListInputSerializer(serializers.Serializer):
     take = serializers.IntegerField(default=100, min_value=1)
     skip = serializers.IntegerField(default=0, min_value=0)
+    from_date = serializers.DateTimeField(default=None)
+    to_date = serializers.DateTimeField(default=None)
+    category_type = serializers.ChoiceField(
+        choices=Category.Type.choices,
+        default=None,
+    )
 
 
 class TransactionListItemSerializer(serializers.Serializer):
