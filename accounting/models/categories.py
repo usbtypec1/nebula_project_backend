@@ -50,3 +50,6 @@ class Category(models.Model):
                 name='unique_category_per_user',
             ),
         )
+
+    def __str__(self):
+        return f'{self.name} ({self.get_type_display()})'

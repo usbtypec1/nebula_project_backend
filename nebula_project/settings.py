@@ -133,7 +133,7 @@ ENSURE_TELEGRAM_INIT_DATA_NOT_EXPIRED = env.bool(
     default=True,
 )
 
-CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS')
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 
 URL_PREFIX = env.str('URL_PREFIX', default=None)
 if URL_PREFIX:
