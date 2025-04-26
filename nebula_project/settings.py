@@ -116,7 +116,9 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
 }
 
 AUTH_USER_MODEL = 'telegram_auth.User'
@@ -125,7 +127,6 @@ TELEGRAM_BOT_TOKEN = env.str('TELEGRAM_BOT_TOKEN')
 
 DRF_STANDARDIZED_ERRORS = {
     'EXCEPTION_FORMATTER_CLASS': 'telegram_auth.exceptions.ExceptionFormatter',
-
 }
 
 ENSURE_TELEGRAM_INIT_DATA_NOT_EXPIRED = env.bool(
