@@ -4,14 +4,14 @@ from decimal import Decimal
 from typing import Protocol
 
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError
-from django.db.models import Sum
+from django.db import IntegrityError, models
+from django.db.models import Case, Sum, When
 
 from accounting.exceptions import (
     AccountAccessDeniedError,
     AccountAlreadyExistsError, AccountNotFoundError,
 )
-from accounting.models import Account, Transfer
+from accounting.models import Account, Category, Transaction, Transfer
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -129,7 +129,32 @@ def compute_account_balance(
         .aggregate(total=Sum('amount'))
     ).get('amount', Decimal('0'))
 
-    balance = account.initial_balance - sent_amount + received_amount
+    balance_based_on_transactions = (
+            Transaction.objects.filter(account_id=account.id)
+            .aggregate(
+                balance=Sum(
+                    Case(
+                        models.When(
+                            category__type=Category.Type.INCOME,
+                            then=models.F('amount')
+                        ),
+                        models.When(
+                            category__type=Category.Type.EXPENSE,
+                            then=models.F('amount') * -1
+                        ),
+                        output_field=models.DecimalField(
+                            max_digits=10, decimal_places=2
+                        ),
+                    )
+                )
+            )['balance'] or 0
+    )
+    balance = (
+            balance_based_on_transactions
+            + account.initial_balance
+            - sent_amount
+            + received_amount
+    )
     return AccountBalance(account_id=account.id, balance=balance)
 
 
@@ -186,13 +211,15 @@ def compute_account_balances(
     sent_amounts = (
         Transfer.objects
         .filter(from_account_id__in=account_ids)
-        .values('from_account_id').annotate(amount=Sum('amount'))
+        .values('from_account_id')
+        .annotate(amount=Sum('amount'))
     )
 
     received_amounts = (
         Transfer.objects
         .filter(to_account_id__in=account_ids)
-        .values('to_account_id').annotate(amount=Sum('amount'))
+        .values('to_account_id')
+        .annotate(amount=Sum('amount'))
     )
 
     account_id_to_sent_amount = {
@@ -204,14 +231,46 @@ def compute_account_balances(
         for entry in received_amounts
     }
 
+    transaction_amounts = (
+        Transaction.objects
+        .filter(account_id__in=account_ids)
+        .values('account_id')
+        .annotate(
+            amount=models.Sum(
+                models.Case(
+                    models.When(
+                        category__type=Category.Type.INCOME,
+                        then=models.F('amount')
+                    ),
+                    models.When(
+                        category__type=Category.Type.EXPENSE,
+                        then=models.F('amount') * -1
+                    ), output_field=models.DecimalField(
+                        max_digits=10, decimal_places=2
+                    ),
+                )
+            )
+        )
+    )
+
+    account_id_to_transaction_amount = {
+        entry['account_id']: entry['amount']
+        for entry in transaction_amounts
+    }
+
     account_balances: list[AccountBalance] = []
     for account in accounts:
         sent_amount = account_id_to_sent_amount.get(account.id, Decimal('0'))
         received_amount = account_id_to_received_amount.get(
-            account.id,
-            Decimal('0'),
+            account.id, Decimal('0')
         )
-        balance = account.initial_balance - sent_amount + received_amount
+        transaction_amount = account_id_to_transaction_amount.get(
+            account.id, Decimal('0')
+        )
+
+        balance = (account.initial_balance - sent_amount + received_amount +
+                   transaction_amount)
+
         account_balances.append(
             AccountBalance(account_id=account.id, balance=balance)
         )
