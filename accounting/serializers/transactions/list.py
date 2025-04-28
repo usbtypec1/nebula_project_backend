@@ -12,6 +12,12 @@ class TransactionListInputSerializer(serializers.Serializer):
         choices=Category.Type.choices,
         default=None,
     )
+    account_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        default=None,
+        min_length=1,
+        max_length=1,
+    )
 
 
 class TransactionListItemSerializer(serializers.Serializer):

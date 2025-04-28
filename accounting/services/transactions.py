@@ -1,4 +1,5 @@
 import datetime
+from collections.abc import Iterable
 from dataclasses import dataclass
 from decimal import Decimal
 
@@ -84,6 +85,7 @@ def get_transactions_page(
         from_date: datetime.datetime | None = None,
         to_date: datetime.datetime | None = None,
         category_type: int | None = None,
+        account_ids: Iterable[int] | None = None,
 ) -> TransactionsPage:
     user_transactions = (
         Transaction.objects
@@ -96,6 +98,10 @@ def get_transactions_page(
     if category_type:
         user_transactions = user_transactions.filter(
             category__type=category_type
+        )
+    if account_ids:
+        user_transactions = user_transactions.filter(
+            account_id__in=account_ids
         )
     transactions_count = user_transactions.count()
     transactions = (

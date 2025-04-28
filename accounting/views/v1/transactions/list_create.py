@@ -24,6 +24,10 @@ class TransactionListCreateApi(APIView):
         transactions_page = TransactionListUseCase(
             take=data['take'],
             skip=data['skip'],
+            from_date=data['from_date'],
+            to_date=data['to_date'],
+            category_type=data['category_type'],
+            account_ids=data['account_ids'],
             user_id=request.user.id,
         ).execute()
         serializer = TransactionListOutputSerializer(transactions_page)
