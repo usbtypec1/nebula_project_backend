@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'telegram_auth',
     'accounting',
     'exchange_rates',
+    'notifications',
 ]
 
 MIDDLEWARE = [
