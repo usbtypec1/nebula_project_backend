@@ -6,6 +6,7 @@ from accounting.views import (
     TransactionListCreateApi, TransactionRetrieveUpdateDeleteApi,
     TransferListCreateApi,
     TransferRetrieveUpdateDeleteApi,
+    PublicAccountRetrieveApi,
 )
 
 
@@ -60,7 +61,12 @@ accounts_urlpatterns = [
         '<int:account_id>/',
         AccountRetrieveUpdateDeleteApi.as_view(),
         name='account-retrieve-update-delete',
-    )
+    ),
+    path(
+        'public/<int:account_id>/',
+        PublicAccountRetrieveApi.as_view(),
+        name='public-account-retrieve',
+    ),
 ]
 
 urlpatterns = [

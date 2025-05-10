@@ -1,4 +1,8 @@
-from .accounts import AccountListCreateApi, AccountRetrieveUpdateDeleteApi
+from .accounts import (
+    AccountListCreateApi,
+    AccountRetrieveUpdateDeleteApi,
+    PublicAccountRetrieveApi,
+)
 from .categories import CategoryListCreateApi, CategoryRetrieveUpdateDeleteApi
 from .transactions import (
     TransactionListCreateApi, TransactionRetrieveUpdateDeleteApi,
