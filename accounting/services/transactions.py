@@ -79,18 +79,19 @@ def create_transaction(
 
 def get_transactions_page(
         *,
-        user_id: int,
         take: int = 1000,
         skip: int = 0,
+        user_id: int | None = None,
         from_date: datetime.datetime | None = None,
         to_date: datetime.datetime | None = None,
         category_type: int | None = None,
         account_ids: Iterable[int] | None = None,
 ) -> TransactionsPage:
-    user_transactions = (
-        Transaction.objects
-        .filter(Q(account__user_id=user_id) | Q(category__user_id=user_id))
-    )
+    user_transactions = Transaction.objects.all()
+    if user_id is not None:
+        user_transactions = user_transactions.filter(
+            Q(account__user_id=user_id) | Q(category__user_id=user_id)
+        )
     if from_date:
         user_transactions = user_transactions.filter(date__gte=from_date)
     if to_date:

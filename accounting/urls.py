@@ -3,7 +3,8 @@ from django.urls import include, path
 from accounting.views import (
     AccountListCreateApi, AccountRetrieveUpdateDeleteApi,
     CategoryListCreateApi, CategoryRetrieveUpdateDeleteApi,
-    TransactionListCreateApi, TransactionRetrieveUpdateDeleteApi,
+    PublicAccountTransactionListApi, TransactionListCreateApi,
+    TransactionRetrieveUpdateDeleteApi,
     TransferListCreateApi,
     TransferRetrieveUpdateDeleteApi,
     PublicAccountRetrieveApi,
@@ -66,6 +67,11 @@ accounts_urlpatterns = [
         'public/<int:account_id>/',
         PublicAccountRetrieveApi.as_view(),
         name='public-account-retrieve',
+    ),
+    path(
+        'public/<int:account_id>/transactions/',
+        PublicAccountTransactionListApi.as_view(),
+        name='public-account-transaction-list',
     ),
 ]
 
