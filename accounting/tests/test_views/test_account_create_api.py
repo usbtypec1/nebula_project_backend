@@ -5,6 +5,7 @@ from rest_framework import status
 from accounting.tests.factories import AccountFactory
 
 
+# Проверяет успешное создание нового счёта с нулевым балансом
 @pytest.mark.django_db
 def test_account_created_successfully(authorized_client):
     data = {
@@ -26,6 +27,7 @@ def test_account_created_successfully(authorized_client):
     }
 
 
+# Проверяет, что нельзя создать счёт с уже существующим названием для того же пользователя
 @pytest.mark.django_db
 def test_account_already_exists(user, authorized_client):
     account = AccountFactory(user=user)
@@ -50,6 +52,7 @@ def test_account_already_exists(user, authorized_client):
     }
 
 
+# Проверяет успешное создание счёта с заданным начальным балансом
 @pytest.mark.django_db
 def test_create_account_with_initial_balance(authorized_client):
     data = {
