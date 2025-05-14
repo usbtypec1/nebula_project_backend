@@ -7,6 +7,7 @@ from accounting.models import Category
 from accounting.tests.factories import CategoryFactory
 
 
+# Проверяет успешное создание категории без родительской (основная категория)
 @pytest.mark.django_db
 def test_create_category_without_parent(authorized_client):
     url = reverse('accounting:category-list-create')
@@ -29,6 +30,7 @@ def test_create_category_without_parent(authorized_client):
     }
 
 
+# Проверяет, что неавторизованный пользователь получает ошибку 401 при попытке создать категорию
 @pytest.mark.django_db
 def test_user_not_authenticated():
     client = APIClient()
@@ -52,6 +54,7 @@ def test_user_not_authenticated():
     }
 
 
+# Проверяет успешное создание подкатегории с указанием parent_id
 @pytest.mark.django_db
 def test_create_subcategory(authorized_client):
     category = CategoryFactory()
@@ -76,6 +79,7 @@ def test_create_subcategory(authorized_client):
     }
 
 
+# Проверяет, что нельзя создать категорию с уже существующим названием у того же пользователя
 @pytest.mark.django_db
 def test_category_already_exists(user, authorized_client):
     category = CategoryFactory(user=user)
